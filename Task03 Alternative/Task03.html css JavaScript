@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ultimate Tic Tac Toe Pro</title>
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle, #1c1c1c, #000);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+    transition: 0.5s;
+}
+
+.container {
+    text-align: center;
+    background: rgba(0,0,0,0.6);
+    padding: 25px 30px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px #00e5ff;
+}
+
+h1 { margin-bottom: 5px; }
+
+.mode-select {
+    margin-bottom: 10px;
+}
+
+select {
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    grid-template-rows: repeat(3, 110px);
+    gap: 10px;
+    margin: 25px auto;
+}
+
+.cell {
+    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+    border-radius: 18px;
+    font-size: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: inset 4px 4px 8px #000, inset -4px -4px 8px #444;
+    transition: 0.2s;
+}
+
+.cell:hover { transform: scale(1.05); }
+
+.cell.win {
+    background: linear-gradient(145deg, #00e676, #00c853);
+    box-shadow: 0 0 20px #00ff9c;
+}
+
+button {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 10px;
+    background: #00c853;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.status {
+    margin-top: 12px;
+    font-size: 18px;
+    min-height: 24px;
+}
+
+/* Celebration */
+body.win-bg {
+    background: radial-gradient(circle, #00ff99, #00c853, #006400);
+    animation: celebrate 1s infinite alternate;
+}
+@keyframes celebrate {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.4); }
+}
+
+/* Lose */
+body.lose-bg {
+    background: red;
+    animation: shake 0.25s infinite;
+}
+@keyframes shake {
+    0% { transform: translate(2px,2px); }
+    25% { transform: translate(-2px,2px); }
+    50% { transform: translate(2px,-2px); }
+    75% { transform: translate(-2px,-2px); }
+    100% { transform: translate(2px,2px); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🎮 Ultimate Tic Tac Toe Pro</h1>
+
+    <div class="mode-select">
+        Mode:
+        <select id="mode">
+            <option value="ai">Play vs Computer</option>
+            <option value="multi">Multiplayer</option>
+        </select>
+    </div>
+
+    <div class="scoreboard">
+        <div>X: <span id="scoreX">0</span></div>
+        <div>O: <span id="scoreO">0</span></div>
+    </div>
+
+    <div class="board" id="board"></div>
+    <div class="status" id="status"></div>
+    <button onclick="resetGame()">Restart</button>
+</div>
+
+<script>
+const boardElement = document.getElementById("board");
+const statusText = document.getElementById("status");
+const modeSelect = document.getElementById("mode");
+const scoreXEl = document.getElementById("scoreX");
+const scoreOEl = document.getElementById("scoreO");
+
+let board = ["","","","","","","","",""];
+let currentPlayer = "X";
+let gameActive = true;
+let scoreX = 0;
+let scoreO = 0;
+
+const winPatterns = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+];
+
+function speak(text){
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.rate = 1;
+    msg.pitch = 1;
+    speechSynthesis.speak(msg);
+}
+
+function createBoard(){
+    boardElement.innerHTML="";
+    board.forEach((cell,index)=>{
+        const div=document.createElement("div");
+        div.classList.add("cell");
+        div.dataset.index=index;
+        div.innerText=cell;
+        div.addEventListener("click",handleClick);
+        boardElement.appendChild(div);
+    });
+}
+
+function handleClick(e){
+    const index=e.target.dataset.index;
+    if(board[index]!=="" || !gameActive) return;
+
+    board[index]=currentPlayer;
+    createBoard();
+
+    if(checkWinner(currentPlayer)){
+        statusText.innerText=`🎉 Player ${currentPlayer} Wins!`;
+        speak(`Player ${currentPlayer} wins the game`);
+        document.body.classList.add("win-bg");
+
+        if(currentPlayer==="X"){ scoreX++; scoreXEl.innerText=scoreX; }
+        else{ scoreO++; scoreOEl.innerText=scoreO; }
+
+        gameActive=false;
+        return;
+    }
+
+    if(board.every(cell=>cell!=="")){
+        statusText.innerText="Draw!";
+        speak("The game is a draw");
+        gameActive=false;
+        return;
+    }
+
+    if(modeSelect.value==="ai" && currentPlayer==="X"){
+        currentPlayer="O";
+        setTimeout(computerMove,400);
+    } else {
+        currentPlayer = currentPlayer==="X"?"O":"X";
+        speak(`Player ${currentPlayer} turn`);
+    }
+}
+
+function computerMove(){
+    let bestMove=minimax(board,"O").index;
+    board[bestMove]="O";
+    createBoard();
+
+    if(checkWinner("O")){
+        statusText.innerText="💥 Computer Wins!";
+        speak("Computer wins the game");
+        document.body.classList.add("lose-bg");
+        scoreO++; scoreOEl.innerText=scoreO;
+        gameActive=false;
+        return;
+    }
+
+    if(board.every(cell=>cell!=="")){
+        statusText.innerText="Draw!";
+        speak("The game is a draw");
+        gameActive=false;
+        return;
+    }
+
+    currentPlayer="X";
+}
+
+function checkWinner(player){
+    return winPatterns.some(pattern=>{
+        const win=pattern.every(i=>board[i]===player);
+        if(win){
+            const cells=document.querySelectorAll(".cell");
+            pattern.forEach(i=>cells[i].classList.add("win"));
+        }
+        return win;
+    });
+}
+
+function resetGame(){
+    board=["","","","","","","","",""];
+    currentPlayer="X";
+    gameActive=true;
+    statusText.innerText="";
+    document.body.classList.remove("win-bg","lose-bg");
+    createBoard();
+}
+
+function minimax(newBoard,player){
+    let available=newBoard.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+
+    if(checkWinMini(newBoard,"X")) return {score:-10};
+    if(checkWinMini(newBoard,"O")) return {score:10};
+    if(available.length===0) return {score:0};
+
+    let moves=[];
+    for(let i=0;i<available.length;i++){
+        let move={};
+        move.index=available[i];
+        newBoard[available[i]]=player;
+
+        let result=minimax(newBoard,player==="O"?"X":"O");
+        move.score=result.score;
+
+        newBoard[available[i]]="";
+        moves.push(move);
+    }
+
+    let bestMove;
+    if(player==="O"){
+        let bestScore=-10000;
+        for(let i=0;i<moves.length;i++){
+            if(moves[i].score>bestScore){
+                bestScore=moves[i].score;
+                bestMove=i;
+            }
+        }
+    } else {
+        let bestScore=10000;
+        for(let i=0;i<moves.length;i++){
+            if(moves[i].score<bestScore){
+                bestScore=moves[i].score;
+                bestMove=i;
+            }
+        }
+    }
+    return moves[bestMove];
+}
+
+function checkWinMini(boardCheck,player){
+    return winPatterns.some(pattern=>
+        pattern.every(i=>boardCheck[i]===player)
+    );
+}
+
+createBoard();
+</script>
+
+</body>
+</html>
