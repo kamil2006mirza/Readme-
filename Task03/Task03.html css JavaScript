@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>3D Coding Quiz Game 🎮</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#000428,#004e92);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+  overflow:hidden;
+}
+
+/* Instruction Screen */
+.instructions{
+  width:90%;
+  max-width:500px;
+  background:black;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 0 30px red;
+  text-align:center;
+}
+.instructions h1{color:red;}
+.instructions ul{text-align:left;}
+.start-btn{
+  padding:12px 25px;
+  background:red;
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-size:18px;
+  cursor:pointer;
+}
+
+/* Quiz Box */
+.quiz-box{
+  display:none;
+  width:420px;
+  background:white;
+  color:black;
+  padding:25px;
+  border-radius:20px;
+  text-align:center;
+  position:relative;
+}
+.timer{
+  position:absolute;
+  top:10px;
+  right:15px;
+  background:#ff7675;
+  color:white;
+  padding:6px 12px;
+  border-radius:10px;
+  font-weight:bold;
+}
+.option{
+  display:block;
+  margin:10px 0;
+  padding:10px;
+  background:#eee;
+  border-radius:10px;
+  cursor:pointer;
+}
+.option:hover{background:#ddd;}
+
+button{
+  margin-top:15px;
+  padding:10px 20px;
+  border:none;
+  border-radius:10px;
+  background:#6c5ce7;
+  color:white;
+  cursor:pointer;
+}
+
+/* Background effects */
+.correct{background:linear-gradient(135deg,#00ff99,#00cc66);}
+.wrong{background:linear-gradient(135deg,#ff0000,#8b0000);}
+
+/* Cartoon */
+.character{
+  position:absolute;
+  bottom:20px;
+  left:20px;
+}
+.head{
+  width:50px;height:50px;
+  background:#ffccbc;border-radius:50%;
+  text-align:center;
+}
+.body{
+  width:40px;height:60px;
+  background:#4fc3f7;border-radius:20px;
+  margin:auto;
+}
+.arm,.leg{
+  width:10px;height:40px;
+  background:#ffccbc;
+  position:absolute;
+}
+.arm.left{left:-12px;top:55px;}
+.arm.right{right:-12px;top:55px;}
+.leg.left{left:5px;bottom:-40px;background:#555;}
+.leg.right{right:5px;bottom:-40px;background:#555;}
+
+.dance{
+  animation:jump 0.5s infinite;
+}
+@keyframes jump{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+  100%{transform:translateY(0);}
+}
+
+/* Prank */
+.prank{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:black;
+  color:red;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  font-size:25px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="instructions" id="instructions">
+<h1>⚠️ WARNING ⚠️</h1>
+<p>This is not a normal quiz...</p>
+<ul>
+<li>⏱️ 1 minute per question</li>
+<li>❌ Wrong answer = BOOM 💥</li>
+<li>🎉 Correct answer = Celebration</li>
+<li>🐞 Bugs may appear</li>
+<li>😈 Don't panic</li>
+</ul>
+<button class="start-btn" onclick="startGame()">Start Game 😈</button>
+</div>
+
+<div class="quiz-box" id="quizBox">
+<div class="timer" id="timer">60</div>
+<h2 id="question"></h2>
+<div id="options"></div>
+<button onclick="nextQuestion()">Next</button>
+<div id="result"></div>
+</div>
+
+<div class="character" id="character">
+<div class="head">🙂</div>
+<div class="body"></div>
+<div class="arm left"></div>
+<div class="arm right"></div>
+<div class="leg left"></div>
+<div class="leg right"></div>
+</div>
+
+<div class="prank" id="prank">
+🐞 SYSTEM ERROR 🐞<br>
+Screen Frozen!<br>
+Just Kidding 😜
+</div>
+
+<script>
+const quizData=[
+{question:"Which symbol is used for comments in JavaScript?",
+options:["//","##","**","%%"],answer:"//"},
+{question:"Which keyword declares a variable?",
+options:["var","int","float","char"],answer:"var"},
+{question:"Which loop runs at least once?",
+options:["for","while","do...while","loop"],answer:"do...while"}
+];
+
+let currentQuestion=0;
+let score=0;
+let timeLeft=60;
+let timer;
+
+/* Voice */
+function speak(text){
+if('speechSynthesis' in window){
+let msg=new SpeechSynthesisUtterance(text);
+window.speechSynthesis.speak(msg);
+}
+}
+
+function startGame(){
+document.getElementById("instructions").style.display="none";
+document.getElementById("quizBox").style.display="block";
+speak("Welcome to the coding quiz");
+loadQuestion();
+startTimer();
+}
+
+function loadQuestion(){
+document.body.className="";
+let q=quizData[currentQuestion];
+document.getElementById("question").innerText=q.question;
+let optionsHTML="";
+q.options.forEach(opt=>{
+optionsHTML+=`<label class="option">
+<input type="radio" name="answer" value="${opt}"> ${opt}
+</label>`;
+});
+document.getElementById("options").innerHTML=optionsHTML;
+speak(q.question);
+}
+
+function startTimer(){
+clearInterval(timer);
+timeLeft=60;
+document.getElementById("timer").innerText=timeLeft;
+timer=setInterval(()=>{
+timeLeft--;
+document.getElementById("timer").innerText=timeLeft;
+if(timeLeft==10){speak("10 seconds left");}
+if(timeLeft<=0){
+clearInterval(timer);
+nextQuestion();
+}
+},1000);
+}
+
+function nextQuestion(){
+clearInterval(timer);
+let selected=document.querySelector('input[name="answer"]:checked');
+
+if(selected && selected.value===quizData[currentQuestion].answer){
+score++;
+document.body.className="correct";
+document.getElementById("character").classList.add("dance");
+speak("Correct answer congratulations");
+setTimeout(()=>{document.getElementById("character").classList.remove("dance");},1500);
+}else{
+document.body.className="wrong";
+speak("Wrong answer boom");
+}
+
+currentQuestion++;
+
+if(currentQuestion==2){
+document.getElementById("prank").style.display="flex";
+speak("System error");
+setTimeout(()=>{
+document.getElementById("prank").style.display="none";
+},3000);
+}
+
+if(currentQuestion<quizData.length){
+setTimeout(()=>{
+loadQuestion();
+startTimer();
+},2000);
+}else{
+showResult();
+}
+}
+
+function showResult(){
+document.getElementById("question").innerHTML="Quiz Completed 🎉";
+document.getElementById("options").innerHTML="";
+document.getElementById("result").innerHTML="Score: "+score+" / "+quizData.length;
+speak("Quiz completed. Your score is "+score);
+}
+</script>
+
+</body>
+</html>
