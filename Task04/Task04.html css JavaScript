@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Responsive Landing Page</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f1f5f9;
+}
+
+/* ===== NAVBAR ===== */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: transparent;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.3s, box-shadow 0.3s;
+  z-index: 1000;
+}
+
+nav.scrolled {
+  background: #0f172a;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.logo {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.menu {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.menu li a {
+  text-decoration: none;
+  color: white;
+  font-size: 1rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.3s, color 0.3s;
+  cursor: pointer;
+}
+
+.menu li a:hover {
+  background: #38bdf8;
+  color: #020617;
+}
+
+/* ===== SECTIONS ===== */
+.section {
+  display: none;
+  padding: 120px 20px 60px;
+  text-align: center;
+  min-height: 100vh;
+}
+
+.section.active {
+  display: block;
+}
+
+#home {
+  background: linear-gradient(135deg, #020617, #0f172a);
+  color: white;
+}
+
+#about { background: #e2e8f0; }
+#services { background: #cbd5e1; }
+#contact { background: #94a3b8; }
+
+h1, h2 {
+  margin-bottom: 15px;
+}
+
+p {
+  max-width: 700px;
+  margin: auto;
+  font-size: 1rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .menu {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="logo">MyWebsite</div>
+  <ul class="menu">
+    <li><a onclick="showSection('home')">Home</a></li>
+    <li><a onclick="showSection('about')">About</a></li>
+    <li><a onclick="showSection('services')">Services</a></li>
+    <li><a onclick="showSection('contact')">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- SECTIONS -->
+<div id="home" class="section active">
+  <h1>Welcome to My Landing Page</h1>
+  <p>This is the home section. Click menu items to view different content.</p>
+</div>
+
+<div id="about" class="section">
+  <h2>About Us</h2>
+  <p>We create modern and responsive web designs that look great on all devices.</p>
+</div>
+
+<div id="services" class="section">
+  <h2>Our Services</h2>
+  <p>We provide web development, UI/UX design, and digital solutions.</p>
+</div>
+
+<div id="contact" class="section">
+  <h2>Contact Us</h2>
+  <p>Email: example@email.com | Phone: +91-XXXXXXXXXX</p>
+</div>
+
+<script>
+const navbar = document.getElementById("navbar");
+
+/* Scroll Effect */
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 50) {
+    navbar.classList.add("scrolled");
+  } else {
+    navbar.classList.remove("scrolled");
+  }
+});
+
+/* Show Section Function */
+function showSection(id) {
+  const sections = document.querySelectorAll(".section");
+  sections.forEach(section => section.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+</script>
+
+</body>
+</html>
