@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional Stopwatch</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Orbitron',sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+}
+
+.container{
+    width:360px;
+    background:rgba(0,0,0,0.7);
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    color:#fff;
+    box-shadow:0 0 40px rgba(0,0,0,0.8);
+}
+
+h2{
+    margin-bottom:20px;
+    letter-spacing:2px;
+}
+
+.display{
+    font-size:2.4rem;
+    padding:15px;
+    background:#000;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:inset 0 0 15px #00ffc3;
+}
+
+.buttons{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:15px;
+}
+
+button{
+    flex:1;
+    margin:5px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+}
+
+.start{background:#00c853;color:#000;}
+.pause{background:#ffd600;color:#000;}
+.reset{background:#d50000;color:#fff;}
+.lap{background:#00b0ff;color:#000;width:100%;margin-top:5px;}
+
+button:hover:not(:disabled){
+    transform:scale(1.05);
+}
+
+.laps{
+    margin-top:20px;
+    max-height:180px;
+    overflow-y:auto;
+    background:rgba(255,255,255,0.05);
+    padding:10px;
+    border-radius:10px;
+}
+
+.lap-item{
+    display:flex;
+    justify-content:space-between;
+    padding:6px 0;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    font-size:0.85rem;
+}
+
+.lap-item:last-child{
+    border-bottom:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>⏱ SMART STOPWATCH</h2>
+
+    <div class="display" id="display">00:00:00.000</div>
+
+    <div class="buttons">
+        <button class="start" id="startBtn">START</button>
+        <button class="pause" id="pauseBtn" disabled>PAUSE</button>
+        <button class="reset" id="resetBtn">RESET</button>
+    </div>
+
+    <button class="lap" id="lapBtn" disabled>ADD LAP</button>
+
+    <div class="laps" id="lapsContainer"></div>
+</div>
+
+<script>
+
+let startTime = 0;
+let elapsedTime = 0;
+let interval = null;
+let running = false;
+let lapCounter = 0;
+
+const display = document.getElementById("display");
+const startBtn = document.getElementById("startBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const resetBtn = document.getElementById("resetBtn");
+const lapBtn = document.getElementById("lapBtn");
+const lapsContainer = document.getElementById("lapsContainer");
+
+function formatTime(ms){
+    let milliseconds = ms % 1000;
+    let totalSeconds = Math.floor(ms / 1000);
+    let seconds = totalSeconds % 60;
+    let minutes = Math.floor(totalSeconds / 60) % 60;
+    let hours = Math.floor(totalSeconds / 3600);
+
+    return (
+        String(hours).padStart(2,'0') + ":" +
+        String(minutes).padStart(2,'0') + ":" +
+        String(seconds).padStart(2,'0') + "." +
+        String(milliseconds).padStart(3,'0')
+    );
+}
+
+function updateTime(){
+    elapsedTime = Date.now() - startTime;
+    display.textContent = formatTime(elapsedTime);
+}
+
+startBtn.addEventListener("click",function(){
+
+    if(!running){
+        startTime = Date.now() - elapsedTime;
+        interval = setInterval(updateTime,10);
+        running = true;
+
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        lapBtn.disabled = false;
+    }
+});
+
+pauseBtn.addEventListener("click",function(){
+
+    if(running){
+        clearInterval(interval);
+        running = false;
+
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+    }
+});
+
+resetBtn.addEventListener("click",function(){
+
+    clearInterval(interval);
+    running = false;
+    elapsedTime = 0;
+    lapCounter = 0;
+
+    display.textContent = "00:00:00.000";
+    lapsContainer.innerHTML = "";
+
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    lapBtn.disabled = true;
+});
+
+lapBtn.addEventListener("click",function(){
+
+    if(running){
+        lapCounter++;
+
+        const lapItem = document.createElement("div");
+        lapItem.classList.add("lap-item");
+        lapItem.innerHTML = `<span>Lap ${lapCounter}</span><span>${formatTime(elapsedTime)}</span>`;
+
+        lapsContainer.prepend(lapItem);
+    }
+});
+
+</script>
+
+</body>
+</html>
