@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional Calculator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Orbitron',sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+}
+
+.calculator{
+    width:350px;
+    background:rgba(0,0,0,0.8);
+    padding:20px;
+    border-radius:20px;
+    box-shadow:0 0 40px rgba(0,0,0,0.8);
+}
+
+.display{
+    width:100%;
+    height:70px;
+    background:#000;
+    color:#00ffcc;
+    font-size:2rem;
+    text-align:right;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:15px;
+    overflow-x:auto;
+    box-shadow:inset 0 0 15px #00ffcc;
+}
+
+.buttons{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+button{
+    height:55px;
+    border:none;
+    border-radius:12px;
+    font-size:1.2rem;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.2s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+.number{background:#1e2a38;color:#fff;}
+.operator{background:#ff9800;color:#000;}
+.equal{background:#00c853;color:#000;grid-column:span 2;}
+.clear{background:#d50000;color:#fff;}
+.delete{background:#607d8b;color:#fff;}
+</style>
+</head>
+
+<body>
+
+<div class="calculator">
+    <div class="display" id="display">0</div>
+
+    <div class="buttons">
+        <button class="clear">AC</button>
+        <button class="delete">DEL</button>
+        <button class="operator">%</button>
+        <button class="operator">/</button>
+
+        <button class="number">7</button>
+        <button class="number">8</button>
+        <button class="number">9</button>
+        <button class="operator">*</button>
+
+        <button class="number">4</button>
+        <button class="number">5</button>
+        <button class="number">6</button>
+        <button class="operator">-</button>
+
+        <button class="number">1</button>
+        <button class="number">2</button>
+        <button class="number">3</button>
+        <button class="operator">+</button>
+
+        <button class="number">0</button>
+        <button class="number">.</button>
+        <button class="equal">=</button>
+    </div>
+</div>
+
+<script>
+
+const display = document.getElementById("display");
+const buttons = document.querySelectorAll("button");
+
+let expression = "";
+
+// Update Display
+function updateDisplay(){
+    display.textContent = expression || "0";
+}
+
+// Check last character
+function lastChar(){
+    return expression.slice(-1);
+}
+
+// Prevent multiple decimals in same number
+function canAddDecimal(){
+    let parts = expression.split(/[\+\-\*\/%]/);
+    return !parts[parts.length - 1].includes(".");
+}
+
+// Safe Evaluate
+function evaluateExpression(){
+    try{
+        if(expression === "") return;
+
+        if("+-*/%".includes(lastChar())){
+            expression = expression.slice(0,-1);
+        }
+
+        let result = Function('"use strict";return (' + expression + ')')();
+
+        if(!isFinite(result)) throw Error("Math Error");
+
+        expression = result.toString();
+        updateDisplay();
+    }
+    catch{
+        expression = "";
+        display.textContent = "Error";
+    }
+}
+
+// Handle Input
+function handleInput(value){
+
+    if(!isNaN(value)){
+        expression += value;
+    }
+
+    else if(value === "."){
+        if(canAddDecimal()){
+            expression += value;
+        }
+    }
+
+    else if(["+","-","*","/","%"].includes(value)){
+        if(expression === "") return;
+
+        if(["+","-","*","/","%"].includes(lastChar())){
+            expression = expression.slice(0,-1);
+        }
+        expression += value;
+    }
+
+    updateDisplay();
+}
+
+// Button Click
+buttons.forEach(button=>{
+    button.addEventListener("click",()=>{
+        const value = button.textContent;
+
+        if(button.classList.contains("number") || button.classList.contains("operator")){
+            handleInput(value);
+        }
+
+        else if(button.classList.contains("equal")){
+            evaluateExpression();
+        }
+
+        else if(button.classList.contains("clear")){
+            expression = "";
+            updateDisplay();
+        }
+
+        else if(button.classList.contains("delete")){
+            expression = expression.slice(0,-1);
+            updateDisplay();
+        }
+    });
+});
+
+// Keyboard Support
+document.addEventListener("keydown",(e)=>{
+
+    if((e.key >= "0" && e.key <= "9")){
+        handleInput(e.key);
+    }
+
+    else if(["+","-","*","/","%"].includes(e.key)){
+        handleInput(e.key);
+    }
+
+    else if(e.key === "."){
+        handleInput(".");
+    }
+
+    else if(e.key === "Enter"){
+        evaluateExpression();
+    }
+
+    else if(e.key === "Backspace"){
+        expression = expression.slice(0,-1);
+        updateDisplay();
+    }
+
+    else if(e.key === "Escape"){
+        expression = "";
+        updateDisplay();
+    }
+
+});
+
+</script>
+
+</body>
+  </html>
